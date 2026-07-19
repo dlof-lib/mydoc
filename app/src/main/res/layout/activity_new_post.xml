@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="نشر جديد"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary"
+            android:layout_marginBottom="16dp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroupType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <RadioButton
+                android:id="@+id/radioArticle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="مقال"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radioText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="نص"
+                android:layout_marginStart="16dp" />
+
+            <RadioButton
+                android:id="@+id/radioCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ملف كود"
+                android:layout_marginStart="16dp" />
+        </RadioGroup>
+
+        <EditText
+            android:id="@+id/etTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="العنوان"
+            android:layout_marginBottom="12dp" />
+
+        <EditText
+            android:id="@+id/etContent"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:hint="المحتوى (نص المقال أو الكود)"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnAttachFile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="إرفاق ملف (اختياري)"
+            android:backgroundTint="@color/text_gray" />
+
+        <TextView
+            android:id="@+id/tvFileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_gray"
+            android:layout_marginTop="6dp" />
+
+        <Button
+            android:id="@+id/btnPublish"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="نشر"
+            android:backgroundTint="@color/accent"
+            android:layout_marginTop="20dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center" />
+
+    </LinearLayout>
+</ScrollView>
