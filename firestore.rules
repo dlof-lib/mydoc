@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // مجموعة المستخدمين: مُعرَّف المستند = uid من Firebase Authentication.
+    // القراءة مفتوحة (لعرض البروفايلات والأيقونات للجميع)، لكن الكتابة
+    // مسموحة فقط للمستخدم صاحب الحساب نفسه، والتحقق حقيقي هذه المرة
+    // لأنه مبني على request.auth.uid الموقّع من Firebase وليس حقلاً نصياً.
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    // مجموعة المنشورات: قراءة مفتوحة للجميع، لكن الإنشاء يتطلب تسجيل دخول
+    // وأن يكون authorUid مطابقاً لهوية المستخدم الموقّع. التعديل/الحذف
+    // مسموح فقط لصاحب المنشور الأصلي.
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.authorUid == request.auth.uid
+                    && request.resource.data.keys().hasAll(['authorUid', 'authorUsername', 'title', 'type']);
+      allow update, delete: if request.auth != null
+                    && resource.data.authorUid == request.auth.uid;
+    }
+  }
+}
