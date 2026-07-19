@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "49052983511",
+    "project_id": "dlof-massage2026",
+    "storage_bucket": "dlof-massage2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:49052983511:android:0aa53ae7ffedd64a0a1092",
+        "android_client_info": {
+          "package_name": "com.dlofpkg.massage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDs2TkrdCFDSpMw-cHTdrffA7kGofoZNgc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
