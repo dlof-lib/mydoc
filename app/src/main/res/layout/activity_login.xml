@@ -20,8 +20,8 @@
         android:id="@+id/etUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="اسم المستخدم"
-        android:inputType="text"
+        android:hint="البريد الإلكتروني"
+        android:inputType="textEmailAddress"
         android:layout_marginBottom="12dp" />
 
     <EditText
@@ -38,6 +38,14 @@
         android:layout_height="wrap_content"
         android:text="تسجيل الدخول"
         android:backgroundTint="@color/primary" />
+
+    <Button
+        android:id="@+id/btnRedKeyLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚡ دخول سريع بالمفتاح الأحمر"
+        android:backgroundTint="@color/red_key"
+        android:layout_marginTop="10dp" />
 
     <TextView
         android:id="@+id/tvGoRegister"
