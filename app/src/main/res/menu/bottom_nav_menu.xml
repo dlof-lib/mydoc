@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navHome"
+        android:icon="@drawable/ic_home"
+        android:title="الرئيسية" />
+    <item
+        android:id="@+id/navArticles"
+        android:icon="@drawable/ic_article"
+        android:title="مقالات" />
+    <item
+        android:id="@+id/navSoftware"
+        android:icon="@drawable/ic_code"
+        android:title="برمجيات" />
+    <item
+        android:id="@+id/navAccount"
+        android:icon="@drawable/ic_person"
+        android:title="حسابي" />
+</menu>
