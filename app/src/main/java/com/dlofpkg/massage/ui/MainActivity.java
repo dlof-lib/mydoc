@@ -2,6 +2,8 @@ package com.dlofpkg.massage.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +20,8 @@ import com.dlofpkg.massage.util.ThemeManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 
 import java.util.ArrayList;
@@ -26,9 +30,16 @@ import java.util.List;
 /**
  * الشاشة الرئيسية. تحتوي شريط تنقّل سفلي بأربعة أقسام:
  * الرئيسية (كل المنشورات) / مقالات / برمجيات (ملفات الكود) / حسابي.
- * الفلترة تتم محلياً على القائمة المحمَّلة مسبقاً بدل استعلام Firestore
- * منفصل لكل تبويب، لتفادي الحاجة لفهارس مركّبة (composite index) في
- * Firestore والتي تسبب فشلاً صامتاً في التحميل إن لم تُنشأ يدوياً.
+ *
+ * التحميل يعتمد الآن على مستمع مباشر (addSnapshotListener) بدل جلب لمرّة
+ * واحدة (get())، بحيث:
+ *   1) أي منشور جديد يصل فوراً لكل من يفتح التطبيق (بدون سحب للتحديث)،
+ *   2) نقدر نعرف بدقة هل البيانات المعروضة "من الخادم فعلاً" أو "من نسخة
+ *      محلية مؤقتة لم تُزامَن بعد" عبر SnapshotMetadata، ونعرض بانراً
+ *      تحذيرياً في الحالة الثانية بدل أن يبقى الأمر غامضاً على المستخدم.
+ *
+ * الفلترة بين التبويبات (مقالات/برمجيات) تتم محلياً على القائمة المستلمة،
+ * لتفادي الحاجة لفهارس مركّبة (composite index) في Firestore.
  */
 public class MainActivity extends AppCompatActivity {
 
@@ -36,7 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private PostAdapter adapter;
     private SwipeRefreshLayout swipeRefresh;
     private BottomNavigationView bottomNav;
+    private TextView tvSyncBanner;
 
+    private ListenerRegistration postsListener;
     private final List<Post> allPosts = new ArrayList<>();
     private String currentFilter = null; // null = بدون فلترة (تبويب الرئيسية)
 
@@ -56,13 +69,20 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        tvSyncBanner = findViewById(R.id.tvSyncBanner);
+
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new PostAdapter();
         recyclerView.setAdapter(adapter);
 
         swipeRefresh = findViewById(R.id.swipeRefresh);
-        swipeRefresh.setOnRefreshListener(this::loadPosts);
+        swipeRefresh.setOnRefreshListener(() -> {
+            // المستمع المباشر يبقى شغّالاً ويحدَّث تلقائياً، لكن نمنح المستخدم
+            // إحساساً فورياً بأن "السحب للتحديث" فعل شيئاً، ونعيد جلب الإعجابات.
+            loadMyLikes();
+            swipeRefresh.postDelayed(() -> swipeRefresh.setRefreshing(false), 600);
+        });
 
         FloatingActionButton fabNewPost = findViewById(R.id.fabNewPost);
         fabNewPost.setOnClickListener(v -> startActivity(new Intent(this, NewPostActivity.class)));
@@ -93,22 +113,37 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ThemeManager.applyToActivity(this);
-        loadPosts();
+        startListeningToPosts();
+        loadMyLikes();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        loadPosts();
+    protected void onDestroy() {
+        super.onDestroy();
+        if (postsListener != null) postsListener.remove();
     }
 
-    private void loadPosts() {
-        swipeRefresh.setRefreshing(true);
-        db.collection("posts")
+    /**
+     * مستمع مباشر ودائم على مجموعة posts. يستقبل تلقائياً أي منشور جديد أو
+     * معدَّل من أي مستخدم فور وصوله لخادم Firebase (وهذا هو "الاستقبال المباشر
+     * من Firebase" المطلوب)، بدل انتظار سحب المستخدم للتحديث يدوياً.
+     */
+    private void startListeningToPosts() {
+        if (postsListener != null) postsListener.remove();
+
+        postsListener = db.collection("posts")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(100)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
+                // MetadataChanges.INCLUDE يجعلنا نستقبل تحديثاً إضافياً بمجرد
+                // أن يتأكد الخادم من استلام الكتابة، حتى لو لم يتغيّر أي حقل ظاهرياً.
+                .addSnapshotListener(MetadataChanges.INCLUDE, (querySnapshot, error) -> {
+                    if (error != null) {
+                        swipeRefresh.setRefreshing(false);
+                        Toast.makeText(this, "فشل تحميل المنشورات: " + friendlyError(error), Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    if (querySnapshot == null) return;
+
                     swipeRefresh.setRefreshing(false);
                     allPosts.clear();
                     querySnapshot.forEach(doc -> {
@@ -117,15 +152,17 @@ public class MainActivity extends AppCompatActivity {
                         allPosts.add(post);
                     });
                     applyFilter();
-                    loadMyLikes();
-                })
-                .addOnFailureListener(e -> {
-                    swipeRefresh.setRefreshing(false);
-                    Toast.makeText(this, "فشل تحميل المنشورات: " + friendlyError(e), Toast.LENGTH_LONG).show();
+
+                    // إن كانت البيانات المعروضة الآن قادمة فقط من الذاكرة المحلية
+                    // (بدون اتصال، أو بها كتابات لم تصل للخادم بعد)، نُظهر بانراً
+                    // واضحاً بدل ترك المستخدم يخمّن سبب عدم ظهور منشور عند حساب آخر.
+                    boolean unsynced = querySnapshot.getMetadata().isFromCache()
+                            || querySnapshot.getMetadata().hasPendingWrites();
+                    tvSyncBanner.setVisibility(unsynced && !allPosts.isEmpty() ? View.VISIBLE : View.GONE);
                 });
     }
 
-    /** يطبّق فلتر التبويب الحالي (بدون إعادة تحميل من الشبكة) على القائمة المحمَّلة مسبقاً. */
+    /** يطبّق فلتر التبويب الحالي (بدون إعادة تحميل من الشبكة) على القائمة المستلمة من المستمع. */
     private void applyFilter() {
         if (currentFilter == null) {
             adapter.setPosts(allPosts);
