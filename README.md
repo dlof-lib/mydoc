@@ -75,6 +75,17 @@ firestore.rules            قواعد أمان Firestore
 ملف google-services.json جديد يخص منصتك، ثم استبداله في app/google-services.json
 وتعديل applicationId و namespace في app/build.gradle ليطابقا الباكج الجديد.
 
+## الميزات الاجتماعية البسيطة
+كل المنطق مركّز في `util/SocialActions.java`:
+
+- **إعجاب ❤️**: مجموعة `likes` بمعرّف `postId_uid` (يمنع الإعجاب المكرر)، وعدّاد `likesCount` على المنشور يُحدَّث ذرّياً عبر `FieldValue.increment`.
+- **إعادة نشر 🔁**: تنشئ منشوراً جديداً في feed المستخدم يشير للمنشور الأصلي (`repostOfId`, `repostOfAuthor`)، وتزيد `repostsCount` على الأصلي.
+- **نسخ 📋**: نسخ العنوان والمحتوى للحافظة مباشرة، لا يحتاج Firestore.
+- **إبلاغ 🚩**: نافذة بأسباب سريعة (سبام، محتوى غير لائق، انتحال شخصية...) تُخزَّن في مجموعة `reports`، غير قابلة للقراءة من داخل التطبيق (تُراجَع من Firebase Console فقط).
+- **متابعة / متابِعون**: مجموعة `follows` بمعرّف `followerUid_followingUid`، مع عدّادي `followersCount`/`followingCount` على كل مستخدم. الضغط على العدّاد في الملف الشخصي يفتح قائمة بالمتابِعين أو من يتابعهم (`UserListActivity`). الضغط على اسم صاحب أي منشور يفتح ملفه الشخصي مباشرة.
+
+قواعد `firestore.rules` حُدِّثت لتسمح بتحديث عدّادات `likesCount`/`repostsCount`/`followersCount` من أي مستخدم مسجّل دخول (وليس فقط صاحب المستند)، بينما تبقى بقية الحقول محمية كما كانت.
+
 ## التشغيل محلياً
 1. افتح المجلد في Android Studio.
 2. تأكد من وجود `app/google-services.json` (موجود بالفعل).
