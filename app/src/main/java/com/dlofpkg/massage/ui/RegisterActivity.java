@@ -16,8 +16,12 @@ import com.dlofpkg.massage.R;
 import com.dlofpkg.massage.model.User;
 import com.dlofpkg.massage.util.RedKeyUtils;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -75,39 +79,80 @@ public class RegisterActivity extends AppCompatActivity {
 
         setLoading(true);
 
+        // فحص مبدئي وسريع (قبل حتى إنشاء الحساب) لتوفير تجربة مستخدم أفضل:
+        // إن كان الاسم محجوزاً بوضوح، لا داعي لإنشاء حساب Auth ثم حذفه.
+        // الضمان الحقيقي وغير القابل للتحايل يبقى قاعدة الأمان في Firestore
+        // (مجموعة usernames)، التي تُطبَّق بعد هذا الفحص كخط دفاع نهائي.
+        String usernameKey = username.toLowerCase();
+        db.collection("usernames").document(usernameKey).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        setLoading(false);
+                        Toast.makeText(this, "الاسم @" + username + " مستخدم بالفعل من قبل حساب آخر", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    createAccount(displayName, username, usernameKey, email, password);
+                })
+                .addOnFailureListener(e -> createAccount(displayName, username, usernameKey, email, password));
+    }
+
+    private void createAccount(String displayName, String username, String usernameKey, String email, String password) {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(result -> {
-                    if (result.getUser() == null) {
+                    FirebaseUser firebaseUser = result.getUser();
+                    if (firebaseUser == null) {
                         setLoading(false);
                         return;
                     }
-                    String uid = result.getUser().getUid();
-                    // نخزّن الاسم فوراً في الذاكرة المحلية حتى لو تأخر تحديث
-                    // displayName داخل SDK؛ هذا يمنع ظهور مؤلف فارغ عند نشر أول منشور
-                    // مباشرة بعد التسجيل.
-                    com.dlofpkg.massage.util.SessionManager.cacheUsername(uid, username);
+                    String uid = firebaseUser.getUid();
 
-                    UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
-                            .setDisplayName(username)
-                            .build();
-
-                    User newUser = new User(uid, username, displayName);
-
-                    // ننتظر اكتمال تحديث الاسم في Firebase Auth قبل إنشاء مستند
-                    // Firestore، حتى لا يحدث سباق تزامن بين الاثنين.
-                    result.getUser().updateProfile(profileUpdate)
-                            .addOnCompleteListener(profileTask ->
-                                    db.collection("users").document(uid).set(newUser)
-                                            .addOnSuccessListener(unused -> createRedKeyThenContinue(email, password))
-                                            .addOnFailureListener(e -> {
-                                                setLoading(false);
-                                                Toast.makeText(this, "تم إنشاء الحساب لكن فشل حفظ البيانات: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                            }));
+                    // نحجز اسم المستخدم أولاً، قبل أي شيء آخر. قاعدة الأمان في
+                    // Firestore تسمح بإنشاء هذا المستند فقط إن لم يكن موجوداً
+                    // مسبقاً لاسم آخر (create يُرفض تلقائياً إن كان المستند
+                    // موجوداً أصلاً، ويتحوّل لعملية update المرفوضة بلا شروط)،
+                    // لذا هذا الحجز آمن من التكرار حتى لو حاول شخصان التسجيل
+                    // بنفس الاسم في اللحظة ذاتها.
+                    Map<String, Object> reservation = new HashMap<>();
+                    reservation.put("uid", uid);
+                    db.collection("usernames").document(usernameKey).set(reservation)
+                            .addOnSuccessListener(unused ->
+                                    finishRegistration(firebaseUser, uid, username, displayName, email, password))
+                            .addOnFailureListener(e -> {
+                                // الاسم أُخذ للتو من شخص آخر بين لحظة الفحص وهذه اللحظة:
+                                // نتراجع بحذف حساب Auth الذي أنشأناه للتو حتى لا يبقى حساباً
+                                // "شبحياً" بدون بيانات مستخدم مرتبطة به.
+                                setLoading(false);
+                                firebaseUser.delete();
+                                Toast.makeText(this, "الاسم @" + username + " أصبح مستخدماً للتو من حساب آخر، الرجاء اختيار اسم مختلف", Toast.LENGTH_LONG).show();
+                            });
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
                     Toast.makeText(this, "فشل إنشاء الحساب: " + friendlyError(e.getMessage()), Toast.LENGTH_LONG).show();
                 });
+    }
+
+    private void finishRegistration(FirebaseUser firebaseUser, String uid, String username, String displayName, String email, String password) {
+        // نخزّن الاسم فوراً في الذاكرة المحلية حتى لو تأخر تحديث displayName
+        // داخل SDK؛ هذا يمنع ظهور مؤلف فارغ عند نشر أول منشور مباشرة بعد التسجيل.
+        com.dlofpkg.massage.util.SessionManager.cacheUsername(uid, username);
+
+        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
+                .setDisplayName(username)
+                .build();
+
+        User newUser = new User(uid, username, displayName);
+
+        // ننتظر اكتمال تحديث الاسم في Firebase Auth قبل إنشاء مستند Firestore،
+        // حتى لا يحدث سباق تزامن بين الاثنين.
+        firebaseUser.updateProfile(profileUpdate)
+                .addOnCompleteListener(profileTask ->
+                        db.collection("users").document(uid).set(newUser)
+                                .addOnSuccessListener(unused -> createRedKeyThenContinue(email, password))
+                                .addOnFailureListener(e -> {
+                                    setLoading(false);
+                                    Toast.makeText(this, "تم إنشاء الحساب لكن فشل حفظ البيانات: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                }));
     }
 
     /** ينشئ مفتاح المرور الأحمر تلقائياً بعد التسجيل، ثم يعرضه للمستخدم مرة واحدة. */
