@@ -14,6 +14,7 @@ public class User {
     private String displayName;
     private String iconBase64;   // صورة البروفايل مرسلة كـ Base64 مباشرة إلى Firestore
     private boolean paid;        // هل الحساب على خطة مدفوعة داخل التطبيق
+    private String activeKeyHash; // بصمة المفتاح الأحمر النشط حالياً (لإبطال القديم عند توليد مفتاح جديد)
     private long createdAt;
 
     public User() {
@@ -43,6 +44,9 @@ public class User {
 
     public boolean isPaid() { return paid; }
     public void setPaid(boolean paid) { this.paid = paid; }
+
+    public String getActiveKeyHash() { return activeKeyHash; }
+    public void setActiveKeyHash(String activeKeyHash) { this.activeKeyHash = activeKeyHash; }
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
