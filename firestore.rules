@@ -2,6 +2,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // مجموعة usernames: هذه هي طبقة "منع تكرار الاسم" الحقيقية وغير القابلة
+    // للتحايل. معرّف المستند = اسم المستخدم بحروف صغيرة (lowercase)، وقيمته
+    // uid صاحب هذا الاسم. لأن Firestore يعتبر الكتابة "create" فقط إذا كان
+    // المستند غير موجود مسبقاً، فمحاولة أي حساب آخر حجز نفس الاسم تتحوّل
+    // تلقائياً لعملية "update" المرفوضة هنا بلا شروط — أي لا يمكن لشخصين
+    // امتلاك نفس الاسم أبداً، بغض النظر عمّا يفعله تطبيق العميل.
+    match /usernames/{usernameLower} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      // يسمح لصاحب الاسم فقط بتحرير حجزه (يحدث عند تغيير اسمه لاسم آخر).
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
     // مجموعة المستخدمين: مُعرَّف المستند = uid من Firebase Authentication.
     // القراءة مفتوحة (لعرض البروفايلات والأيقونات للجميع)، لكن الكتابة
     // مسموحة فقط للمستخدم صاحب الحساب نفسه، والتحقق حقيقي هذه المرة
