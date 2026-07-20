@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
@@ -64,8 +65,10 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="10dp"
+                android:drawablePadding="6dp"
                 android:textColor="@color/text_dark"
-                android:text="🤍 إعجاب" />
+                app:drawableStartCompat="@drawable/ic_heart_outline"
+                android:text="0" />
 
             <TextView
                 android:id="@+id/tvRepost"
@@ -74,8 +77,10 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="10dp"
+                android:drawablePadding="6dp"
                 android:textColor="@color/text_dark"
-                android:text="🔁 نشر" />
+                app:drawableStartCompat="@drawable/ic_repost"
+                android:text="0" />
 
             <TextView
                 android:id="@+id/tvCopy"
@@ -84,8 +89,10 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="10dp"
+                android:drawablePadding="6dp"
                 android:textColor="@color/text_dark"
-                android:text="📋 نسخ" />
+                app:drawableStartCompat="@drawable/ic_copy"
+                android:text="نسخ" />
 
             <TextView
                 android:id="@+id/tvReport"
@@ -94,8 +101,10 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:padding="10dp"
+                android:drawablePadding="6dp"
                 android:textColor="@color/text_gray"
-                android:text="🚩 إبلاغ" />
+                app:drawableStartCompat="@drawable/ic_flag"
+                android:text="إبلاغ" />
 
         </LinearLayout>
 
