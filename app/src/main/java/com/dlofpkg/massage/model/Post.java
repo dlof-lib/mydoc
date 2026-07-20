@@ -19,6 +19,10 @@ public class Post {
     private String content;         // نص المقال أو الكود نفسه
     private String fileBase64;      // الملف المرفق كنص Base64
     private String fileName;        // اسم الملف الأصلي (مثال: main.py)
+    private long likesCount;        // عدد الإعجابات
+    private long repostsCount;      // عدد مرات إعادة النشر
+    private String repostOfId;      // معرّف المنشور الأصلي إن كان هذا "إعادة نشر"
+    private String repostOfAuthor;  // اسم صاحب المنشور الأصلي (للعرض)
     private long timestamp;
 
     public Post() {
@@ -33,6 +37,10 @@ public class Post {
         this.content = content;
         this.fileBase64 = "";
         this.fileName = "";
+        this.likesCount = 0;
+        this.repostsCount = 0;
+        this.repostOfId = "";
+        this.repostOfAuthor = "";
         this.timestamp = System.currentTimeMillis();
     }
 
@@ -62,4 +70,16 @@ public class Post {
 
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+    public long getLikesCount() { return likesCount; }
+    public void setLikesCount(long likesCount) { this.likesCount = likesCount; }
+
+    public long getRepostsCount() { return repostsCount; }
+    public void setRepostsCount(long repostsCount) { this.repostsCount = repostsCount; }
+
+    public String getRepostOfId() { return repostOfId; }
+    public void setRepostOfId(String repostOfId) { this.repostOfId = repostOfId; }
+
+    public String getRepostOfAuthor() { return repostOfAuthor; }
+    public void setRepostOfAuthor(String repostOfAuthor) { this.repostOfAuthor = repostOfAuthor; }
 }
