@@ -82,19 +82,27 @@ public class RegisterActivity extends AppCompatActivity {
                         return;
                     }
                     String uid = result.getUser().getUid();
+                    // نخزّن الاسم فوراً في الذاكرة المحلية حتى لو تأخر تحديث
+                    // displayName داخل SDK؛ هذا يمنع ظهور مؤلف فارغ عند نشر أول منشور
+                    // مباشرة بعد التسجيل.
+                    com.dlofpkg.massage.util.SessionManager.cacheUsername(uid, username);
 
                     UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder()
                             .setDisplayName(username)
                             .build();
-                    result.getUser().updateProfile(profileUpdate);
 
                     User newUser = new User(uid, username, displayName);
-                    db.collection("users").document(uid).set(newUser)
-                            .addOnSuccessListener(unused -> createRedKeyThenContinue(email, password))
-                            .addOnFailureListener(e -> {
-                                setLoading(false);
-                                Toast.makeText(this, "تم إنشاء الحساب لكن فشل حفظ البيانات: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            });
+
+                    // ننتظر اكتمال تحديث الاسم في Firebase Auth قبل إنشاء مستند
+                    // Firestore، حتى لا يحدث سباق تزامن بين الاثنين.
+                    result.getUser().updateProfile(profileUpdate)
+                            .addOnCompleteListener(profileTask ->
+                                    db.collection("users").document(uid).set(newUser)
+                                            .addOnSuccessListener(unused -> createRedKeyThenContinue(email, password))
+                                            .addOnFailureListener(e -> {
+                                                setLoading(false);
+                                                Toast.makeText(this, "تم إنشاء الحساب لكن فشل حفظ البيانات: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                            }));
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
