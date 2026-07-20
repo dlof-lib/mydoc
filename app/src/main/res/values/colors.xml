@@ -1,11 +1,34 @@
 <resources>
-    <color name="primary">#1E88E5</color>
-    <color name="primary_dark">#1565C0</color>
-    <color name="accent">#00C853</color>
-    <color name="background">#F5F5F5</color>
+    <!-- Base brand colors (kept same names used across existing layouts/Java) -->
+    <color name="primary">#FF0033</color>          <!-- YouTube-style red: primary actions/brand -->
+    <color name="primary_dark">#CC0029</color>
+    <color name="accent">#3FB950</color>           <!-- GitHub green: success / follow / publish -->
+    <color name="background">#0D1117</color>       <!-- GitHub dark canvas -->
     <color name="white">#FFFFFF</color>
-    <color name="text_dark">#212121</color>
-    <color name="text_gray">#757575</color>
-    <color name="red_key">#D32F2F</color>
-    <color name="red_key_bg">#FFEBEE</color>
+    <color name="text_dark">#E6EDF3</color>        <!-- now: primary text on dark bg -->
+    <color name="text_gray">#8B949E</color>        <!-- secondary text -->
+    <color name="red_key">#F85149</color>          <!-- danger/red-key accent -->
+    <color name="red_key_bg">#2A1315</color>
+
+    <!-- Extended dark palette -->
+    <color name="surface">#161B22</color>
+    <color name="surface_alt">#1C2128</color>
+    <color name="surface_raised">#21262D</color>
+    <color name="border">#30363D</color>
+    <color name="text_muted">#6E7681</color>
+
+    <color name="accent_blue">#58A6FF</color>
+    <color name="accent_purple">#A371F7</color>
+    <color name="accent_green">#3FB950</color>
+    <color name="accent_red">#FF0033</color>
+
+    <!-- Type chips (post kind badges, GitHub language-dot inspired) -->
+    <color name="chip_article_bg">#1A2942</color>
+    <color name="chip_article_text">#58A6FF</color>
+    <color name="chip_text_bg">#241A3A</color>
+    <color name="chip_text_text">#A371F7</color>
+    <color name="chip_code_bg">#132A1B</color>
+    <color name="chip_code_text">#3FB950</color>
+
+    <color name="avatar_bg">#21262D</color>
 </resources>
