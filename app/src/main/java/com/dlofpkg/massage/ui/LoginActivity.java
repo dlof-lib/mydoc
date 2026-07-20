@@ -63,9 +63,13 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(result -> {
-                    setLoading(false);
-                    startActivity(new Intent(this, MainActivity.class));
-                    finish();
+                    // نحدّث نسخة الاسم المحلية من Firestore قبل الدخول للشاشة
+                    // الرئيسية، لضمان عدم ظهور مؤلف فارغ عند النشر مباشرة.
+                    SessionManager.refreshUsernameFromFirestore(() -> {
+                        setLoading(false);
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                    });
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
