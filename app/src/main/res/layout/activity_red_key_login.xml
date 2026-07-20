@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="@color/background">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⚡"
+        android:textSize="42sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="الدخول بالمفتاح الأحمر"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/red_key"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="أدخل مفتاحك للدخول السريع بدون بريد أو كلمة مرور"
+        android:textColor="@color/text_gray"
+        android:textAlignment="center"
+        android:layout_marginBottom="24dp" />
+
+    <EditText
+        android:id="@+id/etRedKey"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="XXXX-XXXX-XXXX-XXXX"
+        android:fontFamily="monospace"
+        android:textAlignment="center"
+        android:inputType="textCapCharacters"
+        android:layout_marginBottom="20dp" />
+
+    <Button
+        android:id="@+id/btnQuickLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="دخول"
+        android:backgroundTint="@color/red_key" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
