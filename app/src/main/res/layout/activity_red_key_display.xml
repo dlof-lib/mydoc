@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="28dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔑"
+            android:textSize="42sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="مفتاح المرور الأحمر الخاص بك"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/red_key"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="وسيلة دخول سريعة بديلة عن كتابة البريد وكلمة المرور في كل مرة"
+            android:textColor="@color/text_gray"
+            android:textAlignment="center"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tvRedKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:padding="18dp"
+            android:background="@color/red_key_bg"
+            android:textColor="@color/red_key"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:textAlignment="center"
+            android:letterSpacing="0.05" />
+
+        <Button
+            android:id="@+id/btnCopy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="نسخ المفتاح"
+            android:backgroundTint="@color/red_key"
+            android:layout_marginTop="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:padding="14dp"
+            android:background="@color/red_key_bg"
+            android:textColor="@color/text_dark"
+            android:text="⚠️ تحذيرات مهمة:
+• هذا المفتاح يظهر لك مرة واحدة فقط ولن نقدر نعرضه لك مرة أخرى.
+• أي شخص يحصل على هذا المفتاح يقدر يدخل حسابك مباشرة، بدون الحاجة لكلمة المرور. لا تشاركه مع أحد ولا ترسله عبر رسائل غير آمنة.
+• إذا ضاع منك المفتاح، ما تقدر تسترجعه — لكن حسابك يبقى آمناً وتقدر دائماً تسجّل الدخول بالبريد الإلكتروني وكلمة المرور العاديين، وتولّد مفتاحاً جديداً من صفحة ملفك الشخصي.
+• يُفضّل حفظه في مكان آمن مثل مدير كلمات مرور، وليس في ملاحظة عادية على الجهاز." />
+
+        <CheckBox
+            android:id="@+id/cbConfirmed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="لقد حفظت المفتاح في مكان آمن"
+            android:layout_marginTop="16dp" />
+
+        <Button
+            android:id="@+id/btnContinue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="متابعة"
+            android:enabled="false"
+            android:backgroundTint="@color/accent"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</ScrollView>
