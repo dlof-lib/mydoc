@@ -26,6 +26,7 @@
         <activity android:name=".ui.ProfileActivity" android:exported="false" />
         <activity android:name=".ui.RedKeyDisplayActivity" android:exported="false" />
         <activity android:name=".ui.RedKeyLoginActivity" android:exported="false" />
+        <activity android:name=".ui.UserListActivity" android:exported="false" />
 
     </application>
 </manifest>
