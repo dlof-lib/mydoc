@@ -13,13 +13,12 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.dlofpkg.massage.R;
-import com.dlofpkg.massage.util.AuthUtils;
 import com.dlofpkg.massage.util.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText etUsername, etPassword;
+    private EditText etUsername, etPassword; // etUsername يحمل الآن البريد الإلكتروني
     private ProgressBar progressBar;
     private FirebaseAuth auth;
 
@@ -41,24 +40,26 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         progressBar = findViewById(R.id.progressBar);
         Button btnLogin = findViewById(R.id.btnLogin);
+        Button btnRedKeyLogin = findViewById(R.id.btnRedKeyLogin);
         TextView tvGoRegister = findViewById(R.id.tvGoRegister);
 
         btnLogin.setOnClickListener(v -> attemptLogin());
+        btnRedKeyLogin.setOnClickListener(v ->
+                startActivity(new Intent(this, RedKeyLoginActivity.class)));
         tvGoRegister.setOnClickListener(v ->
                 startActivity(new Intent(this, RegisterActivity.class)));
     }
 
     private void attemptLogin() {
-        String username = etUsername.getText().toString().trim();
+        String email = etUsername.getText().toString().trim();
         String password = etPassword.getText().toString();
 
-        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "الرجاء تعبئة جميع الحقول", Toast.LENGTH_SHORT).show();
             return;
         }
 
         setLoading(true);
-        String email = AuthUtils.usernameToEmail(username);
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(result -> {
@@ -68,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
-                    Toast.makeText(this, "فشل تسجيل الدخول: اسم المستخدم أو كلمة المرور غير صحيحة", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "فشل تسجيل الدخول: البريد أو كلمة المرور غير صحيحة", Toast.LENGTH_LONG).show();
                 });
     }
 
