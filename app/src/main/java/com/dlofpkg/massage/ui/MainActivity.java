@@ -78,10 +78,23 @@ public class MainActivity extends AppCompatActivity {
                         posts.add(post);
                     });
                     adapter.setPosts(posts);
+                    loadMyLikes();
                 })
                 .addOnFailureListener(e -> {
                     swipeRefresh.setRefreshing(false);
                     Toast.makeText(this, "فشل تحميل المنشورات: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    /** يجلب مرة واحدة معرّفات كل المنشورات التي أعجب بها المستخدم الحالي، لتلوين أزرار الإعجاب بشكل صحيح. */
+    private void loadMyLikes() {
+        String uid = SessionManager.getUid();
+        if (uid == null) return;
+        db.collection("likes").whereEqualTo("uid", uid).get()
+                .addOnSuccessListener(snapshot -> {
+                    java.util.Set<String> likedIds = new java.util.HashSet<>();
+                    snapshot.forEach(doc -> likedIds.add(doc.getString("postId")));
+                    adapter.setLikedPostIds(likedIds);
                 });
     }
 }
