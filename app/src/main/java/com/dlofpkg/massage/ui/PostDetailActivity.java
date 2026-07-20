@@ -110,12 +110,17 @@ public class PostDetailActivity extends AppCompatActivity {
 
     private void updateLikeText() {
         if (currentPost == null) return;
-        tvLike.setText((liked ? "❤️ " : "🤍 ") + currentPost.getLikesCount());
+        tvLike.setText(String.valueOf(currentPost.getLikesCount()));
+        int iconRes = liked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline;
+        tvLike.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
+        tvLike.setTextColor(androidx.core.content.ContextCompat.getColor(this,
+                liked ? R.color.accent_red : R.color.text_dark));
     }
 
     private void updateRepostText() {
         if (currentPost == null) return;
-        tvRepost.setText("🔁 " + currentPost.getRepostsCount());
+        tvRepost.setText(String.valueOf(currentPost.getRepostsCount()));
+        tvRepost.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_repost, 0, 0, 0);
     }
 
     private void toggleLike() {
