@@ -38,6 +38,14 @@
         android:layout_marginTop="6dp" />
 
     <Button
+        android:id="@+id/btnGenerateRedKey"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔑 توليد / تجديد المفتاح الأحمر"
+        android:backgroundTint="@color/red_key"
+        android:layout_marginTop="20dp" />
+
+    <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
