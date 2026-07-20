@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.dlofpkg.massage.R;
 import com.dlofpkg.massage.util.RedKeyUtils;
+import com.dlofpkg.massage.util.SessionManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -72,11 +73,11 @@ public class RedKeyLoginActivity extends AppCompatActivity {
 
     private void signIn(String email, String password) {
         auth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(result -> {
+                .addOnSuccessListener(result -> SessionManager.refreshUsernameFromFirestore(() -> {
                     setLoading(false);
                     startActivity(new Intent(this, MainActivity.class));
                     finish();
-                })
+                }))
                 .addOnFailureListener(e -> {
                     setLoading(false);
                     Toast.makeText(this, "تعذّر تسجيل الدخول بهذا المفتاح", Toast.LENGTH_SHORT).show();
