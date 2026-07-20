@@ -1,0 +1,12 @@
+# io.yml — ملف إعدادات تشغيل بسيط لتطبيق MyDoc.
+# يُحمَّل ويُطبَّق مرة عند بدء كل Activity عبر ThemeManager.runIo(context).
+# صيغة مبسّطة: key: value على كل سطر (بدون تداخل)، بدون الحاجة لمكتبة YAML خارجية.
+
+app_name: MyDoc
+theme_default_swatch: red
+bottom_nav_enabled: true
+feature_likes: true
+feature_reposts: true
+feature_follow: true
+feature_red_key: true
+customization_enabled: true
