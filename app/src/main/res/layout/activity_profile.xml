@@ -1,103 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
-    android:padding="24dp"
     android:background="@color/background">
 
-    <ImageView
-        android:id="@+id/ivIcon"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="16dp"
-        android:background="@android:drawable/ic_menu_gallery"
-        android:scaleType="centerCrop" />
-
-    <Button
-        android:id="@+id/btnChangeIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="تغيير صورة البروفايل"
-        android:layout_marginTop="12dp" />
-
-    <TextView
-        android:id="@+id/tvUsername"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginTop="20dp" />
-
-    <TextView
-        android:id="@+id/tvPlan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:layout_marginTop="6dp" />
-
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="14dp">
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
 
-        <TextView
-            android:id="@+id/tvFollowersCount"
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="112dp"
+            android:layout_height="112dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_avatar_circle"
+            android:padding="2dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop" />
+
+        <Button
+            android:id="@+id/btnChangeIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:text="تغيير صورة البروفايل"
+            android:textColor="@color/accent_blue"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:background="?attr/selectableItemBackground"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:padding="8dp"
-            android:text="0 متابع" />
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="10dp" />
 
         <TextView
+            android:id="@+id/tvPlan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="   " />
+            android:textSize="13sp"
+            android:textColor="@color/chip_code_text"
+            android:background="@drawable/bg_chip_code"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:layout_marginTop="8dp" />
 
-        <TextView
-            android:id="@+id/tvFollowingCount"
+        <!-- stats row, GitHub profile "followers / following" pills -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="18dp">
+
+            <TextView
+                android:id="@+id/tvFollowersCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:gravity="center"
+                android:padding="12dp"
+                android:background="@drawable/bg_pill_stat"
+                android:text="0 متابع" />
+
+            <TextView
+                android:id="@+id/tvFollowingCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:gravity="center"
+                android:padding="12dp"
+                android:background="@drawable/bg_pill_stat"
+                android:text="0 يتابع" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnFollow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="متابعة"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            android:background="@drawable/bg_button_primary"
+            android:layout_marginTop="16dp" />
+
+        <Button
+            android:id="@+id/btnGenerateRedKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔑 توليد / تجديد المفتاح الأحمر"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_button_danger"
+            android:layout_marginTop="24dp" />
+
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="تسجيل الخروج"
+            android:textColor="@color/text_dark"
+            android:background="@drawable/bg_button_outline"
+            android:layout_marginTop="40dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:padding="8dp"
-            android:text="0 يتابع" />
+            android:visibility="gone"
+            android:layout_marginTop="16dp" />
 
     </LinearLayout>
-
-    <Button
-        android:id="@+id/btnFollow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="متابعة"
-        android:visibility="gone"
-        android:backgroundTint="@color/primary"
-        android:layout_marginTop="16dp" />
-
-    <Button
-        android:id="@+id/btnGenerateRedKey"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="🔑 توليد / تجديد المفتاح الأحمر"
-        android:backgroundTint="@color/red_key"
-        android:layout_marginTop="20dp" />
-
-    <Button
-        android:id="@+id/btnLogout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="تسجيل الخروج"
-        android:backgroundTint="@color/text_gray"
-        android:layout_marginTop="40dp" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_marginTop="16dp" />
-
-</LinearLayout>
+</ScrollView>
