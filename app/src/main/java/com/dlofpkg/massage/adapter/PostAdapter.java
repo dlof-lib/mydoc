@@ -1,5 +1,7 @@
 package com.dlofpkg.massage.adapter;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -26,7 +28,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
+/**
+ * يعرض إما بطاقات منشورات حقيقية أو عدداً من بطاقات "هيكلية" (Skeleton)
+ * أثناء انتظار أول استجابة حقيقية من Firestore. استخدام هذا بدل مؤشر تحميل
+ * دائري وحيد يعطي إحساساً بأن المحتوى قادم فعلاً، وهو الشكل المعتاد في
+ * تطبيقات التواصل الحديثة.
+ */
+public class PostAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int TYPE_POST = 0;
+    private static final int TYPE_SKELETON = 1;
+    private static final int SKELETON_COUNT = 6;
 
     private static final String[] REPORT_REASONS = {
             "سبام أو محتوى مكرر", "محتوى غير لائق", "انتحال شخصية", "كود ضار", "سبب آخر"
@@ -35,9 +47,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private final List<Post> posts = new ArrayList<>();
     private final Set<String> likedPostIds = new HashSet<>();
 
+    // نبدأ بحالة "تحميل" افتراضياً حتى تصل أول دفعة بيانات حقيقية من MainActivity
+    private boolean loading = true;
+
     public void setPosts(List<Post> newPosts) {
+        loading = false;
         posts.clear();
         posts.addAll(newPosts);
+        notifyDataSetChanged();
+    }
+
+    /** يُفعَّل/يُعطَّل عرض البطاقات الهيكلية (يُستدعى قبل أول استجابة من Firestore، وعند السحب للتحديث). */
+    public void setLoading(boolean isLoading) {
+        if (this.loading == isLoading) return;
+        this.loading = isLoading;
         notifyDataSetChanged();
     }
 
@@ -48,16 +71,34 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         notifyDataSetChanged();
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return (loading && posts.isEmpty()) ? TYPE_SKELETON : TYPE_POST;
+    }
+
     @NonNull
     @Override
-    public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == TYPE_SKELETON) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_post_skeleton, parent, false);
+            return new SkeletonViewHolder(view);
+        }
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_post, parent, false);
         return new PostViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder rawHolder, int position) {
+        if (rawHolder instanceof SkeletonViewHolder) {
+            ((SkeletonViewHolder) rawHolder).startShimmer();
+            return;
+        }
+        bindPost((PostViewHolder) rawHolder, position);
+    }
+
+    private void bindPost(@NonNull PostViewHolder holder, int position) {
         Post post = posts.get(position);
         Context context = holder.itemView.getContext();
 
@@ -162,6 +203,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     @Override
     public int getItemCount() {
+        if (loading && posts.isEmpty()) return SKELETON_COUNT;
         return posts.size();
     }
 
@@ -178,6 +220,26 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             tvRepost = itemView.findViewById(R.id.tvRepost);
             tvCopy = itemView.findViewById(R.id.tvCopy);
             tvReport = itemView.findViewById(R.id.tvReport);
+        }
+    }
+
+    /** بطاقة هيكلية بسيطة مع تلاشٍ خفيف متكرر (Shimmer) بدل صورة GIF أو مكتبة خارجية. */
+    static class SkeletonViewHolder extends RecyclerView.ViewHolder {
+        private final View root;
+        private ObjectAnimator animator;
+
+        SkeletonViewHolder(View itemView) {
+            super(itemView);
+            root = itemView.findViewById(R.id.skeletonRoot);
+        }
+
+        void startShimmer() {
+            if (animator != null) animator.cancel();
+            root.setAlpha(0.5f);
+            animator = ObjectAnimator.ofFloat(root, "alpha", 0.5f, 1f, 0.5f);
+            animator.setDuration(1100);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.start();
         }
     }
 }
