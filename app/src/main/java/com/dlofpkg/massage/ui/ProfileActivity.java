@@ -1,5 +1,6 @@
 package com.dlofpkg.massage.ui;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,7 +19,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.dlofpkg.massage.R;
 import com.dlofpkg.massage.model.User;
+import com.dlofpkg.massage.util.RedKeyUtils;
 import com.dlofpkg.massage.util.SessionManager;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.ByteArrayOutputStream;
@@ -49,9 +55,11 @@ public class ProfileActivity extends AppCompatActivity {
         tvUsername = findViewById(R.id.tvUsername);
         tvPlan = findViewById(R.id.tvPlan);
         Button btnChangeIcon = findViewById(R.id.btnChangeIcon);
+        Button btnGenerateRedKey = findViewById(R.id.btnGenerateRedKey);
         Button btnLogout = findViewById(R.id.btnLogout);
 
         btnChangeIcon.setOnClickListener(v -> imagePicker.launch("image/*"));
+        btnGenerateRedKey.setOnClickListener(v -> promptPasswordThenGenerateKey());
         btnLogout.setOnClickListener(v -> {
             SessionManager.logout();
             startActivity(new Intent(this, LoginActivity.class));
@@ -114,5 +122,75 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (scale >= 1f) return full;
         return Bitmap.createScaledBitmap(full, Math.round(width * scale), Math.round(height * scale), true);
+    }
+
+    /**
+     * Firebase لا يعطينا كلمة المرور الحالية مطلقاً (لأنها غير مخزَّنة كنص أصلاً)،
+     * لذا لتوليد مفتاح أحمر جديد نحتاج نطلب من المستخدم إدخالها مرة أخرى، ونتحقق
+     * منها عبر reauthenticate قبل استخدامها في تشفير المفتاح.
+     */
+    private void promptPasswordThenGenerateKey() {
+        EditText input = new EditText(this);
+        input.setHint("أدخل كلمة المرور الحالية للتأكيد");
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+        new AlertDialog.Builder(this)
+                .setTitle("تأكيد كلمة المرور")
+                .setMessage("لتوليد مفتاح أحمر جديد، أدخل كلمة مرور حسابك الحالية للتأكيد. أي مفتاح قديم سيتوقف عن العمل.")
+                .setView(input)
+                .setPositiveButton("تأكيد", (dialog, which) -> {
+                    String password = input.getText().toString();
+                    if (password.isEmpty()) {
+                        Toast.makeText(this, "الرجاء إدخال كلمة المرور", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    reauthenticateAndGenerateKey(password);
+                })
+                .setNegativeButton("إلغاء", null)
+                .show();
+    }
+
+    private void reauthenticateAndGenerateKey(String password) {
+        com.google.firebase.auth.FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (firebaseUser == null || firebaseUser.getEmail() == null) return;
+
+        String email = firebaseUser.getEmail();
+        AuthCredential credential = EmailAuthProvider.getCredential(email, password);
+
+        firebaseUser.reauthenticate(credential)
+                .addOnSuccessListener(unused -> generateAndStoreRedKey(email, password))
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "كلمة المرور غير صحيحة", Toast.LENGTH_SHORT).show());
+    }
+
+    private void generateAndStoreRedKey(String email, String password) {
+        String redKey = RedKeyUtils.generateKey();
+        String newHash = RedKeyUtils.hashKey(redKey);
+        String payload = RedKeyUtils.encrypt(redKey, email, password);
+
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(snapshot -> {
+                    String oldHash = snapshot.getString("activeKeyHash");
+                    if (oldHash != null && !oldHash.isEmpty()) {
+                        // نحذف المفتاح القديم فعلياً حتى لا يبقى صالحاً للاستخدام بعد الآن
+                        db.collection("passkeys").document(oldHash).delete();
+                    }
+                    saveNewRedKey(newHash, payload, redKey);
+                })
+                .addOnFailureListener(e -> saveNewRedKey(newHash, payload, redKey));
+    }
+
+    private void saveNewRedKey(String newHash, String payload, String redKey) {
+        db.collection("passkeys").document(newHash)
+                .set(java.util.Collections.singletonMap("payload", payload))
+                .addOnSuccessListener(unused -> db.collection("users").document(uid)
+                        .update("activeKeyHash", newHash)
+                        .addOnCompleteListener(task -> {
+                            Intent intent = new Intent(this, RedKeyDisplayActivity.class);
+                            intent.putExtra("red_key", redKey);
+                            startActivity(intent);
+                        }))
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "فشل توليد المفتاح: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
