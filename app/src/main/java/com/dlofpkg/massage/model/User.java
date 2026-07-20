@@ -15,6 +15,8 @@ public class User {
     private String iconBase64;   // صورة البروفايل مرسلة كـ Base64 مباشرة إلى Firestore
     private boolean paid;        // هل الحساب على خطة مدفوعة داخل التطبيق
     private String activeKeyHash; // بصمة المفتاح الأحمر النشط حالياً (لإبطال القديم عند توليد مفتاح جديد)
+    private long followersCount;  // عدد المتابِعين لهذا المستخدم
+    private long followingCount;  // عدد من يتابعهم هذا المستخدم
     private long createdAt;
 
     public User() {
@@ -27,6 +29,8 @@ public class User {
         this.displayName = displayName;
         this.iconBase64 = "";
         this.paid = false;
+        this.followersCount = 0;
+        this.followingCount = 0;
         this.createdAt = System.currentTimeMillis();
     }
 
@@ -50,4 +54,10 @@ public class User {
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+
+    public long getFollowersCount() { return followersCount; }
+    public void setFollowersCount(long followersCount) { this.followersCount = followersCount; }
+
+    public long getFollowingCount() { return followingCount; }
+    public void setFollowingCount(long followingCount) { this.followingCount = followingCount; }
 }
