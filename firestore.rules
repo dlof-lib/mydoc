@@ -9,7 +9,12 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if true;
       allow create: if request.auth != null && request.auth.uid == uid;
-      allow update: if request.auth != null && request.auth.uid == uid;
+      // صاحب الحساب يقدر يعدّل أي حقل في ملفه. أي مستخدم آخر مسجّل دخول
+      // يقدر فقط يزيد/ينقص followersCount (يحصل هذا عند متابعته/إلغاء متابعته).
+      allow update: if request.auth != null && (
+                    request.auth.uid == uid ||
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount'])
+                    );
       allow delete: if false;
     }
 
@@ -21,8 +26,10 @@ service cloud.firestore {
       allow create: if request.auth != null
                     && request.resource.data.authorUid == request.auth.uid
                     && request.resource.data.keys().hasAll(['authorUid', 'authorUsername', 'title', 'type']);
-      allow update, delete: if request.auth != null
-                    && resource.data.authorUid == request.auth.uid;
+      allow update, delete: if request.auth != null && (
+                    resource.data.authorUid == request.auth.uid ||
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'repostsCount'])
+                    );
     }
     // مجموعة passkeys: تخزّن نسخة مشفّرة من (البريد + كلمة المرور) لكل مفتاح
     // أحمر، تحت معرّف = بصمة SHA-256 للمفتاح (وليس المفتاح نفسه). القراءة
@@ -36,6 +43,31 @@ service cloud.firestore {
       // الحذف مسموح فقط للمستخدم المسجّل دخوله، ويُستخدم حصرياً لإبطال
       // مفتاحه القديم عند توليد مفتاح جديد من صفحة الملف الشخصي.
       allow delete: if request.auth != null;
+      allow update: if false;
+    }
+
+    // الإعجابات: معرّف المستند = postId_uid، بحيث لا يقدر أي مستخدم يعجب
+    // بنفس المنشور مرتين. لا تعديل، فقط إنشاء وحذف من صاحب الإعجاب نفسه.
+    match /likes/{likeId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update: if false;
+    }
+
+    // البلاغات: أي مستخدم مسجّل دخول يقدر يرسل بلاغاً، لكن لا يقدر أحد
+    // يقرأ البلاغات من داخل التطبيق (تُراجَع لاحقاً من Firebase Console فقط).
+    match /reports/{reportId} {
+      allow create: if request.auth != null && request.resource.data.reporterUid == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    // المتابعة: معرّف المستند = followerUid_followingUid. الإنشاء والحذف
+    // مسموحان فقط لصاحب علاقة المتابعة نفسه (الشخص الذي يتابع).
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.followerUid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.followerUid == request.auth.uid;
       allow update: if false;
     }
   }
