@@ -15,11 +15,27 @@
         app:title="⌥ DevPlatform"
         app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title" />
 
+    <!-- بانر حالة المزامنة: يظهر فقط عند وجود منشورات محفوظة محلياً لم تصل
+         بعد لخادم Firebase (لا يوجد اتصال، أو الكتابة ما زالت قيد الإرسال).
+         هذا يجيب مباشرة على سؤال "هل المنشور محفوظ محلياً فقط أم وصل للخادم؟" -->
+    <TextView
+        android:id="@+id/tvSyncBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:background="@drawable/bg_sync_banner"
+        android:textColor="#FFD866"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:padding="8dp"
+        android:visibility="gone"
+        android:text="⚠️ لا يوجد اتصال بالخادم الآن، المنشورات معروضة من نسخة محلية مؤقتة" />
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/toolbar">
+        android:layout_marginTop="?attr/actionBarSize">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
