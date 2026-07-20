@@ -9,9 +9,11 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/primary"
-        android:titleTextColor="@color/white"
-        app:title="MyDoc" />
+        android:background="@color/surface"
+        android:elevation="2dp"
+        android:titleTextColor="@color/text_dark"
+        app:title="⌥ DevPlatform"
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefresh"
@@ -23,8 +25,9 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:paddingTop="6dp"
             android:clipToPadding="false"
-            android:paddingBottom="80dp" />
+            android:paddingBottom="90dp" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -36,7 +39,9 @@
         android:layout_margin="20dp"
         android:contentDescription="نشر جديد"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/accent" />
+        app:tint="@color/white"
+        app:backgroundTint="@color/primary"
+        app:borderWidth="0dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabProfile"
@@ -46,6 +51,8 @@
         android:layout_margin="20dp"
         android:contentDescription="الملف الشخصي"
         android:src="@android:drawable/ic_menu_myplaces"
-        app:backgroundTint="@color/primary" />
+        app:tint="@color/text_dark"
+        app:backgroundTint="@color/surface_raised"
+        app:borderWidth="0dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
