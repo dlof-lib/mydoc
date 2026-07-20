@@ -100,12 +100,30 @@ public class NewPostActivity extends AppCompatActivity {
         }
 
         String uid = SessionManager.getUid();
-        String username = SessionManager.getUsername();
+        if (uid == null) {
+            Toast.makeText(this, "الرجاء تسجيل الدخول أولاً", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        setLoading(true);
+        String cachedUsername = SessionManager.getUsername();
+        if (cachedUsername != null && !cachedUsername.isEmpty()) {
+            doPublish(uid, cachedUsername, title, type, content);
+        } else {
+            // احتياط: إذا لم يكن الاسم متوفراً محلياً بعد (نادر جداً)، نجلبه
+            // من Firestore أولاً بدل نشر منشور بمؤلف فارغ.
+            SessionManager.refreshUsernameFromFirestore(() -> {
+                String username = SessionManager.getUsername();
+                doPublish(uid, username != null ? username : "مستخدم", title, type, content);
+            });
+        }
+    }
+
+    private void doPublish(String uid, String username, String title, String type, String content) {
         Post post = new Post(uid, username, title, type, content);
         post.setFileBase64(attachedFileBase64);
         post.setFileName(attachedFileName);
 
-        setLoading(true);
         db.collection("posts").add(post)
                 .addOnSuccessListener(ref -> {
                     setLoading(false);
@@ -115,8 +133,18 @@ public class NewPostActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
-                    Toast.makeText(this, "فشل النشر: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "فشل النشر: " + friendlyError(e), Toast.LENGTH_LONG).show();
                 });
+    }
+
+    /** يترجم أخطاء Firestore الشائعة لرسالة مفهومة، خصوصاً خطأ الصلاحيات
+     * الذي يحدث عادة بسبب عدم تفعيل Firestore أو عدم نشر firestore.rules. */
+    private String friendlyError(Exception e) {
+        String msg = e.getMessage();
+        if (msg != null && msg.contains("PERMISSION_DENIED")) {
+            return "تم رفض الحفظ من Firestore (تحقق من تفعيل Cloud Firestore ونشر firestore.rules في مشروع Firebase)";
+        }
+        return msg;
     }
 
     private void setLoading(boolean loading) {
