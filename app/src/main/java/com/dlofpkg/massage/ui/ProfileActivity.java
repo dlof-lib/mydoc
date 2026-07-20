@@ -76,6 +76,15 @@ public class ProfileActivity extends AppCompatActivity {
         isOwnProfile = viewedUid.equals(myUid);
 
         ivIcon = findViewById(R.id.ivIcon);
+        // نجعل صورة البروفايل مدوّرة فعلياً (وليس فقط خلفية دائرية خلف صورة
+        // مربعة)، بقصّ الـ ImageView نفسه على شكل دائرة كاملة.
+        ivIcon.setClipToOutline(true);
+        ivIcon.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setOval(0, 0, view.getWidth(), view.getHeight());
+            }
+        });
         tvUsername = findViewById(R.id.tvUsername);
         tvPlan = findViewById(R.id.tvPlan);
         tvFollowersCount = findViewById(R.id.tvFollowersCount);
@@ -132,6 +141,25 @@ public class ProfileActivity extends AppCompatActivity {
         ThemeManager.applyToActivity(this);
     }
 
+    /**
+     * حماية للحسابات القديمة التي أُنشئت قبل إضافة نظام "منع تكرار الاسم":
+     * إن لم يكن اسم المستخدم الحالي محجوزاً في مجموعة usernames، نحجزه له
+     * تلقائياً بصمت الآن. إن كان محجوزاً بالفعل (لنفس الحساب أو لحساب آخر
+     * قديم بنفس الاسم من قبل هذه الميزة)، لا نفعل شيئاً.
+     */
+    private void ensureUsernameReserved(String username) {
+        if (username == null || username.isEmpty()) return;
+        String key = username.toLowerCase();
+        db.collection("usernames").document(key).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.exists()) {
+                        java.util.Map<String, Object> reservation = new java.util.HashMap<>();
+                        reservation.put("uid", myUid);
+                        db.collection("usernames").document(key).set(reservation);
+                    }
+                });
+    }
+
     private void openUserList(String mode) {
         Intent intent = new Intent(this, UserListActivity.class);
         intent.putExtra("uid", viewedUid);
@@ -161,6 +189,7 @@ public class ProfileActivity extends AppCompatActivity {
                         tvFieldUsername.setText("@" + user.getUsername());
                         FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
                         tvFieldEmail.setText(fbUser != null && fbUser.getEmail() != null ? fbUser.getEmail() : "-");
+                        ensureUsernameReserved(user.getUsername());
                     }
 
                     if (user.getIconBase64() != null && !user.getIconBase64().isEmpty()) {
@@ -311,25 +340,67 @@ public class ProfileActivity extends AppCompatActivity {
                         Toast.makeText(this, "صيغة المعرّف غير صحيحة", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-                    if (fbUser == null) return;
-                    UserProfileChangeRequest req = new UserProfileChangeRequest.Builder()
-                            .setDisplayName(newUsername).build();
-                    // ملاحظة: displayName في Firebase Auth يُستخدم داخلياً كـ "اسم المؤلف"
-                    // عند نشر منشور جديد (SessionManager.getUsername())، لذا يجب تحديثه
-                    // هنا أيضاً حتى تعكس المنشورات الجديدة المعرّف الجديد فوراً.
-                    fbUser.updateProfile(req).addOnCompleteListener(t ->
-                            db.collection("users").document(myUid).update("username", newUsername)
-                                    .addOnSuccessListener(u -> {
-                                        SessionManager.cacheUsername(myUid, newUsername);
-                                        tvFieldUsername.setText("@" + newUsername);
-                                        loadProfile();
-                                        Toast.makeText(this, "تم تحديث المعرّف", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e -> Toast.makeText(this, "فشل التحديث: " + e.getMessage(), Toast.LENGTH_SHORT).show()));
+                    if (newUsername.equalsIgnoreCase(current)) {
+                        return; // لم يتغيّر شيء فعلياً
+                    }
+                    checkUsernameAvailableThenSwap(current, newUsername);
                 })
                 .setNegativeButton("إلغاء", null)
                 .show();
+    }
+
+    /**
+     * يتحقق أولاً أن الاسم الجديد غير مستخدم، ثم يحاول حجزه في مجموعة
+     * usernames. الحجز نفسه هو الضمان الحقيقي (بفضل قواعد الأمان)، وليس
+     * هذا الفحص المبدئي فقط، لذا حتى لو حصل تسابق نادر بين مستخدمين، لن
+     * يفوز بالاسم إلا حساب واحد.
+     */
+    private void checkUsernameAvailableThenSwap(String oldUsername, String newUsername) {
+        String newKey = newUsername.toLowerCase();
+        String oldKey = oldUsername.toLowerCase();
+
+        db.collection("usernames").document(newKey).get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        Toast.makeText(this, "الاسم @" + newUsername + " مستخدم بالفعل من قبل حساب آخر", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    reserveNewUsernameThenApply(oldKey, newUsername, newKey);
+                })
+                .addOnFailureListener(e -> reserveNewUsernameThenApply(oldKey, newUsername, newKey));
+    }
+
+    private void reserveNewUsernameThenApply(String oldKey, String newUsername, String newKey) {
+        java.util.Map<String, Object> reservation = new java.util.HashMap<>();
+        reservation.put("uid", myUid);
+
+        db.collection("usernames").document(newKey).set(reservation)
+                .addOnSuccessListener(unused -> {
+                    // نجح حجز الاسم الجديد: نحرّر الاسم القديم، ثم نحدّث الحساب فعلياً
+                    db.collection("usernames").document(oldKey).delete();
+                    applyNewUsername(newUsername);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "الاسم @" + newUsername + " أصبح مستخدماً للتو من حساب آخر", Toast.LENGTH_LONG).show());
+    }
+
+    private void applyNewUsername(String newUsername) {
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (fbUser == null) return;
+        UserProfileChangeRequest req = new UserProfileChangeRequest.Builder()
+                .setDisplayName(newUsername).build();
+        // ملاحظة: displayName في Firebase Auth يُستخدم داخلياً كـ "اسم المؤلف"
+        // عند نشر منشور جديد (SessionManager.getUsername())، لذا يجب تحديثه
+        // هنا أيضاً حتى تعكس المنشورات الجديدة المعرّف الجديد فوراً.
+        fbUser.updateProfile(req).addOnCompleteListener(t ->
+                db.collection("users").document(myUid).update("username", newUsername)
+                        .addOnSuccessListener(u -> {
+                            SessionManager.cacheUsername(myUid, newUsername);
+                            tvFieldUsername.setText("@" + newUsername);
+                            loadProfile();
+                            Toast.makeText(this, "تم تحديث المعرّف", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(this, "فشل التحديث: " + e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
 
     private void promptEditEmail() {
