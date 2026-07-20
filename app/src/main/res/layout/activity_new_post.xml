@@ -16,7 +16,7 @@
             android:text="نشر جديد"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="@color/primary"
+            android:textColor="@color/text_dark"
             android:layout_marginBottom="16dp" />
 
         <RadioGroup
@@ -24,28 +24,46 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:background="@drawable/bg_card"
+            android:padding="6dp"
+            android:layout_marginBottom="18dp">
 
             <RadioButton
                 android:id="@+id/radioArticle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="مقال"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:button="@null"
+                android:background="@drawable/bg_chip_radio"
+                android:textColor="@color/text_dark"
+                android:padding="10dp"
+                android:text="📄 مقال"
                 android:checked="true" />
 
             <RadioButton
                 android:id="@+id/radioText"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="نص"
-                android:layout_marginStart="16dp" />
+                android:layout_weight="1"
+                android:gravity="center"
+                android:button="@null"
+                android:background="@drawable/bg_chip_radio"
+                android:textColor="@color/text_dark"
+                android:padding="10dp"
+                android:text="✏️ نص" />
 
             <RadioButton
                 android:id="@+id/radioCode"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="ملف كود"
-                android:layout_marginStart="16dp" />
+                android:layout_weight="1"
+                android:gravity="center"
+                android:button="@null"
+                android:background="@drawable/bg_chip_radio"
+                android:textColor="@color/text_dark"
+                android:padding="10dp"
+                android:text="⌥ ملف كود" />
         </RadioGroup>
 
         <EditText
@@ -53,29 +71,41 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="العنوان"
+            android:textColor="@color/text_dark"
+            android:textColorHint="@color/text_muted"
+            android:background="@drawable/bg_input_field"
+            android:padding="14dp"
             android:layout_marginBottom="12dp" />
 
         <EditText
             android:id="@+id/etContent"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="220dp"
             android:hint="المحتوى (نص المقال أو الكود)"
             android:gravity="top|start"
             android:inputType="textMultiLine"
+            android:fontFamily="monospace"
+            android:textSize="14sp"
+            android:textColor="@color/text_dark"
+            android:textColorHint="@color/text_muted"
+            android:background="@drawable/bg_code_block"
+            android:padding="14dp"
             android:layout_marginBottom="12dp" />
 
         <Button
             android:id="@+id/btnAttachFile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="إرفاق ملف (اختياري)"
-            android:backgroundTint="@color/text_gray" />
+            android:text="📎 إرفاق ملف (اختياري)"
+            android:textColor="@color/text_dark"
+            android:background="@drawable/bg_button_outline" />
 
         <TextView
             android:id="@+id/tvFileName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/text_gray"
+            android:textSize="12sp"
             android:layout_marginTop="6dp" />
 
         <Button
@@ -83,7 +113,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="نشر"
-            android:backgroundTint="@color/accent"
+            android:textColor="@color/white"
+            android:background="@drawable/bg_button_accent"
             android:layout_marginTop="20dp" />
 
         <ProgressBar
