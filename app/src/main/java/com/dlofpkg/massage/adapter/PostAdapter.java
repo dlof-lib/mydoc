@@ -86,7 +86,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
         boolean liked = likedPostIds.contains(post.getId());
         updateLikeText(holder.tvLike, liked, post.getLikesCount());
-        holder.tvRepost.setText("🔁 " + post.getRepostsCount());
+        holder.tvRepost.setText(String.valueOf(post.getRepostsCount()));
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, PostDetailActivity.class);
@@ -133,7 +133,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
 
     private void updateLikeText(TextView tv, boolean liked, long count) {
-        tv.setText((liked ? "❤️ " : "🤍 ") + count);
+        tv.setText(String.valueOf(count));
+        int iconRes = liked ? R.drawable.ic_heart_filled : R.drawable.ic_heart_outline;
+        tv.setCompoundDrawablesWithIntrinsicBounds(iconRes, 0, 0, 0);
+        tv.setTextColor(androidx.core.content.ContextCompat.getColor(tv.getContext(),
+                liked ? R.color.accent_red : R.color.text_dark));
     }
 
     private void openProfile(Context context, String uid) {
